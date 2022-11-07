@@ -7,14 +7,13 @@ import java.io.IOException;
 import java.util.*;
 
 public class BooleanSearchEngine implements SearchEngine {
-    //???
+    protected List<List> fileMapList = new ArrayList<>();
 
 
     public BooleanSearchEngine(File pdfsDir) throws IOException {
         if (pdfsDir.isDirectory()) {
             for (File item : pdfsDir.listFiles()) {
                 File pdfFile = item.getAbsoluteFile();
-                System.out.println(item.getName());  //вывод списка pdf в папке
                 booleanSearchEngineOneFile(pdfFile);
             }
         } else {
@@ -22,41 +21,51 @@ public class BooleanSearchEngine implements SearchEngine {
         }
     }
 
-    public void booleanSearchEngineOneFile(File pdfsDir) throws IOException {
-        var doc = new PdfDocument(new PdfReader(pdfsDir));
-        Map<String, List> docMap = new HashMap<>();   //Мапа файла. key - слово, value - лист с номером страницы и количеством повторов
-        for (int i = 0; i < doc.getNumberOfPages(); i++) {
+    protected void booleanSearchEngineOneFile(File pdfsDir) throws IOException {
 
-            var page = doc.getPage(i + 1);
+        List<Map> pageList = new ArrayList<>();
+        var doc = new PdfDocument(new PdfReader(pdfsDir));
+        for (int i = 0; i < doc.getNumberOfPages(); i++) {
+            Map<String, PageEntry> docMap = new HashMap<>();   //Мапа файла. key - слово, value - PageEntry с информацией о имени файла, странице и числе повторов.
+            int pageInt = i + 1;
+            var page = doc.getPage(pageInt);
             var text = PdfTextExtractor.getTextFromPage(page);
             var words = text.toLowerCase().split("\\P{IsAlphabetic}+");
-//            System.out.println(words[0]);
-            List<Integer> wordList = new ArrayList<>(); //Лист страницы и повторов. № ячейки - страница, value - количество повторов
-            for (int j = 0; j < words.length; j++) {
-                if (wordList.isEmpty()) {
-                    wordList.add(j, 1);
-                } else {
-                    wordList.set(j, wordList.get(j) + 1);
+            Map<String, Integer> freqs = new HashMap<>();   //Мапа с частотой повтора слова. key - слово, value - частота повтора.
+            for (var word : words) {
+                if (word.isEmpty()) {
+                    continue;
                 }
-//                if (docMap.get(words[j]) == null) {
-//                    docMap.put(words[j], wordList);
-//                } else {
-//                    docMap.replace(words[j], wordList);
-//                }
-
+                freqs.put(word, freqs.getOrDefault(word, 0) + 1);
             }
-
-
+            freqs.forEach((k, v) -> {
+                docMap.put(k, new PageEntry(pdfsDir.getName(), pageInt, v));        //Перебор мапы частоты для присвоения значений в мапу файла.
+            });
+            pageList.add(docMap);
         }
-//        System.out.println(docMap);
+        fileMapList.add(pageList);
     }
+
+
     // прочтите тут все pdf и сохраните нужные данные,
     // тк во время поиска сервер не должен уже читать файлы
 
 
     @Override
     public List<PageEntry> search(String word) {
-        // тут реализуйте поиск по слову
-        return Collections.emptyList();
+        List<PageEntry> out = new ArrayList<>();
+        for (int i = 0; i < fileMapList.size(); i++) {
+            List pageList = fileMapList.get(i);
+            for (int j = 0; j < pageList.size(); j++) {
+                Map<String, PageEntry> docMap = (Map<String, PageEntry>) pageList.get(j);
+                PageEntry searchRequest = docMap.get(word.toLowerCase());
+                if (searchRequest != null) {
+                    out.add(searchRequest);
+                }
+            }
+
+        }
+        Collections.sort(out, PageEntry::compareTo);
+        return out;
     }
 }
