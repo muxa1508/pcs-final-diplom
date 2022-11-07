@@ -46,11 +46,6 @@ public class BooleanSearchEngine implements SearchEngine {
         fileMapList.add(pageList);
     }
 
-
-    // прочтите тут все pdf и сохраните нужные данные,
-    // тк во время поиска сервер не должен уже читать файлы
-
-
     @Override
     public List<PageEntry> search(String word) {
         List<PageEntry> out = new ArrayList<>();
