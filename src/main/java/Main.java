@@ -3,7 +3,7 @@ import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        BooleanSearchEngine engine = new BooleanSearchEngine(new File("pdfs"));
+        BooleanSearchEngine engine = new BooleanSearchEngine(new File("pdfs/SoftSkills.pdf"));
         System.out.println(engine.search("бизнес"));
 
         // здесь создайте сервер, который отвечал бы на нужные запросы
