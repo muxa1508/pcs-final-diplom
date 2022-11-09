@@ -1,6 +1,8 @@
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,9 +60,21 @@ public class BooleanSearchEngine implements SearchEngine {
                     out.add(searchRequest);
                 }
             }
-
         }
         Collections.sort(out, PageEntry::compareTo);
         return out;
+    }
+
+    public JSONArray outToJson (List out) {
+        JSONArray outJson = new JSONArray();
+        for (int i = 0; i < out.size(); i++) {
+            PageEntry pageEntry = (PageEntry) out.get(i);
+            JSONObject pageEntryJson = new JSONObject();
+            pageEntryJson.put("name", pageEntry.getPdfName());
+            pageEntryJson.put("page", pageEntry.getPage());
+            pageEntryJson.put("count", pageEntry.getCount());
+            outJson.add(pageEntryJson);
+        }
+        return outJson;
     }
 }

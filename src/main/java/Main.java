@@ -1,4 +1,3 @@
-import org.json.simple.JSONArray;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,9 +15,7 @@ public class Main {
                 ) {
                     String word = in.readLine();
                     out.println("Поисковый запрос получен");
-                    JSONArray list = new JSONArray();
-                    list.add(engine.search(word));
-                    out.println(list);
+                    out.println(engine.outToJson(engine.search(word)));
                 }
             }
         } catch (IOException e) {
@@ -26,4 +23,5 @@ public class Main {
             e.printStackTrace();
         }
     }
+
 }
