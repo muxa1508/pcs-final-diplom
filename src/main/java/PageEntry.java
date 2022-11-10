@@ -22,6 +22,7 @@ public class PageEntry implements Comparable<PageEntry> {
         return count;
     }
 
+
     @Override
     public int compareTo(PageEntry o) {
         return Integer.compare(o.count, this.count);
@@ -29,7 +30,7 @@ public class PageEntry implements Comparable<PageEntry> {
 
     @Override
     public String toString() {
-        return "\n {" +
+        return "\n{" +
                 "\n  \"pdfName\"" + ": " + "\"" + pdfName +"\"" +
                 "\n  \"page\"" + ": " + page +
                 "\n  \"count\"" + ": " + count +

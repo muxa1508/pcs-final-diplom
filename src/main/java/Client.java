@@ -27,19 +27,20 @@ public class Client {
         try (Socket clientSocket = new Socket(HOST, PORT);
              BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
              PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
-            out.println("Бизнес");
+            out.println("Бизнес бизнес атмосфера");
             System.out.println(in.readLine());
             String inputFromServer = in.readLine();
-            System.out.print(inputFromServer);
-            try { JSONParser parser = new JSONParser();
+//            System.out.print(inputFromServer);
+            try {
+                JSONParser parser = new JSONParser();
                 List<PageEntry> inPageEntry = new ArrayList<>();
                 JSONArray jsonArray = (JSONArray) parser.parse(inputFromServer);
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-                    PageEntry pageEntry = new PageEntry((String) jsonObject.get("name"), ((Long) jsonObject.get("page")).intValue(), ((Long) jsonObject.get("count")).intValue());
+                    PageEntry pageEntry = new PageEntry((String) jsonObject.get("pdfName"), ((Long) jsonObject.get("page")).intValue(), ((Long) jsonObject.get("count")).intValue());
                     inPageEntry.add(pageEntry);
                 }
-//                System.out.println(inPageEntry);
+                System.out.println(inPageEntry);
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
