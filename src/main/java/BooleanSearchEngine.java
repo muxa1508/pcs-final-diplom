@@ -11,6 +11,7 @@ public class BooleanSearchEngine implements SearchEngine {
     protected List<List> fileMapList = new ArrayList<>();
     protected String stopListFile = "stop-ru.txt";
 
+    protected List<String> stopList = new ArrayList<>();
 
     public BooleanSearchEngine(File pdfsDir) throws IOException {
         if (pdfsDir.isDirectory()) {
@@ -21,6 +22,7 @@ public class BooleanSearchEngine implements SearchEngine {
         } else {
             booleanSearchEngineOneFile(pdfsDir);
         }
+        stopListParser(new File(stopListFile));                                                                         //Заполнение коллекции стоп-слов
     }
 
     protected void booleanSearchEngineOneFile(File pdfsDir) throws IOException {
@@ -58,18 +60,14 @@ public class BooleanSearchEngine implements SearchEngine {
                 Map<String, PageEntry> docMap = (Map<String, PageEntry>) pageList.get(j);
                 PageEntry searchRequestSum = null;                                                                      //Определение общего PageEntry для всех искомых на странице слов
                 for (String searchWord : searchList) {                                                                  //Перебор по списку поисковых слов
-                    for (String stopListWord : stopListParser(new File(stopListFile))) {                                //перебор по списку стоп-листа
-                        if (!searchWord.equals(stopListWord)) {                                                         //Проверка наличия искомого слова в стоп-листе
-                            PageEntry searchRequest = docMap.get(searchWord);
-                            if (searchRequest != null) {
-                                if (searchRequestSum == null) {
-                                    searchRequestSum = searchRequest;
-                                } else {
-                                    searchRequestSum = new PageEntry(searchRequestSum.getPdfName(), searchRequestSum.getPage(), searchRequestSum.getCount() + searchRequest.getCount());
-                                }
-                            }
-                        }
-
+                    if (stopList.contains(searchWord)) {                                                                //Проверка наличия искомого слова в стоп-листе
+                        break;
+                    }
+                    PageEntry searchRequest = docMap.get(searchWord);
+                    while (searchRequest != null) {
+                        int count = (searchRequestSum == null) ? 0 : searchRequestSum.getCount();
+                        searchRequestSum = new PageEntry(searchRequest.getPdfName(), searchRequest.getPage(), count + searchRequest.getCount());
+                        break;
                     }
                 }
                 if (searchRequestSum != null) {                                                                         //Добавление обобщенного для страницы и всех поисковых слов PageEntry в выходной List
@@ -82,7 +80,6 @@ public class BooleanSearchEngine implements SearchEngine {
     }
 
     protected List<String> stopListParser(File inputFile) {
-        List<String> stopList = new ArrayList<>();
         try (FileReader fileReader = new FileReader(inputFile);
              Scanner scanner = new Scanner(fileReader)) {
             stopList.add(scanner.nextLine());
