@@ -26,8 +26,6 @@ public class BooleanSearchEngine implements SearchEngine {
     }
 
     protected void booleanSearchEngineOneFile(File pdfsDir) throws IOException {
-
-
         var doc = new PdfDocument(new PdfReader(pdfsDir));
         for (int i = 0; i < doc.getNumberOfPages(); i++) {
             int pageInt = i + 1;
@@ -68,6 +66,7 @@ public class BooleanSearchEngine implements SearchEngine {
                 Collections.sort(searchRequest, PageEntry::compareTo);
                 return searchRequest;
             }
+
             if (searchRequest != null) {
                 for (PageEntry pageEntry : searchRequest) {
                     Map<String, Integer> hashName = new HashMap<>();
