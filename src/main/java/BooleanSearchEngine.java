@@ -10,7 +10,6 @@ import java.util.*;
 public class BooleanSearchEngine implements SearchEngine {
     protected Map<String, List<PageEntry>> fileMap = new HashMap<>();
     protected String stopListFile = "stop-ru.txt";
-
     protected List<String> stopList = new ArrayList<>();
 
     public BooleanSearchEngine(File pdfsDir) throws IOException {

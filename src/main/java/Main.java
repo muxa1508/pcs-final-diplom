@@ -7,7 +7,6 @@ public class Main {
 //        BooleanSearchEngine engine = new BooleanSearchEngine(new File("pdfs/Этапы оценки проекта_ понятия, методы и полезные инструменты.pdf"));
         BooleanSearchEngine engine = new BooleanSearchEngine(new File("pdfs"));
 //        System.out.println(engine.outToJson(engine.search("Бизнес бизнес атмосфера")));
-//        System.out.println(engine.search("бизнес бизнес атмосфера"));
 
         try (ServerSocket serverSocket = new ServerSocket(8989);) { // стартуем сервер один(!) раз
             while (true) { // в цикле(!) принимаем подключения
