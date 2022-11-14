@@ -8,7 +8,7 @@ import java.io.*;
 import java.util.*;
 
 public class BooleanSearchEngine implements SearchEngine {
-    protected List<List> fileMapList = new ArrayList<>();
+    protected Map<String, List<PageEntry>> fileMap = new HashMap<>();
     protected String stopListFile = "stop-ru.txt";
 
     protected List<String> stopList = new ArrayList<>();
@@ -27,10 +27,9 @@ public class BooleanSearchEngine implements SearchEngine {
 
     protected void booleanSearchEngineOneFile(File pdfsDir) throws IOException {
 
-        List<Map> pageList = new ArrayList<>();
+
         var doc = new PdfDocument(new PdfReader(pdfsDir));
         for (int i = 0; i < doc.getNumberOfPages(); i++) {
-            Map<String, PageEntry> docMap = new HashMap<>();                                                            //Мапа файла. key - слово, value - PageEntry с информацией о имени файла, странице и числе повторов.
             int pageInt = i + 1;
             var page = doc.getPage(pageInt);
             var text = PdfTextExtractor.getTextFromPage(page);
@@ -42,39 +41,56 @@ public class BooleanSearchEngine implements SearchEngine {
                 }
                 freqs.put(word, freqs.getOrDefault(word, 0) + 1);
             }
+
             freqs.forEach((k, v) -> {
-                docMap.put(k, new PageEntry(pdfsDir.getName(), pageInt, v));                                            //Перебор мапы частоты для присвоения значений в мапу файла.
+                PageEntry pageEntry = new PageEntry(pdfsDir.getName(), pageInt, v);
+                if (!fileMap.containsKey(k)) {
+                    fileMap.put(k, new ArrayList<>(List.of(pageEntry)));
+                } else {
+                    fileMap.get(k).add(pageEntry);
+                }
             });
-            pageList.add(docMap);
         }
-        fileMapList.add(pageList);
     }
 
     @Override
     public List<PageEntry> search(String word) {
         List<String> searchList = List.of(word.toLowerCase().split("\\P{IsAlphabetic}+"));
         List<PageEntry> out = new ArrayList<>();
-        for (int i = 0; i < fileMapList.size(); i++) {
-            List pageList = fileMapList.get(i);
-            for (int j = 0; j < pageList.size(); j++) {
-                Map<String, PageEntry> docMap = (Map<String, PageEntry>) pageList.get(j);
-                PageEntry searchRequestSum = null;                                                                      //Определение общего PageEntry для всех искомых на странице слов
-                for (String searchWord : searchList) {                                                                  //Перебор по списку поисковых слов
-                    if (stopList.contains(searchWord)) {                                                                //Проверка наличия искомого слова в стоп-листе
-                        break;
+        Map<Map<String, Integer>, Integer> pageMap = new HashMap<>();
+        for (String searchWord : searchList) {                                                                          //Перебор по списку поисковых слов
+            if (stopList.contains(searchWord)) {                                                                        //Проверка наличия искомого слова в стоп-листе
+                break;
+            }
+            List<PageEntry> searchRequest = fileMap.get(searchWord);
+
+            if (searchList.size() == 1) {
+                Collections.sort(searchRequest, PageEntry::compareTo);
+                return searchRequest;
+            }
+            if (searchRequest != null) {
+                for (PageEntry pageEntry : searchRequest) {
+                    Map<String, Integer> hashName = new HashMap<>();
+                    hashName.put(pageEntry.getPdfName(), pageEntry.getPage());
+                    if (!pageMap.containsKey(hashName)) {
+                        pageMap.put(hashName, pageEntry.getCount());
+                    } else {
+                        pageMap.replace(hashName, pageMap.get(hashName), pageMap.get(hashName) + pageEntry.getCount());
                     }
-                    PageEntry searchRequest = docMap.get(searchWord);
-                    while (searchRequest != null) {
-                        int count = (searchRequestSum == null) ? 0 : searchRequestSum.getCount();
-                        searchRequestSum = new PageEntry(searchRequest.getPdfName(), searchRequest.getPage(), count + searchRequest.getCount());
-                        break;
-                    }
-                }
-                if (searchRequestSum != null) {                                                                         //Добавление обобщенного для страницы и всех поисковых слов PageEntry в выходной List
-                    out.add(searchRequestSum);
                 }
             }
         }
+
+        pageMap.forEach((k, v) -> {
+            Map<String, Integer> hashName = new HashMap<>(k);
+            int count = v;
+            hashName.forEach((key, value) -> {
+                String name = key;
+                int page = value;
+                PageEntry newPageEntry = new PageEntry(name, page, count);
+                out.add(newPageEntry);
+            });
+        });
         Collections.sort(out, PageEntry::compareTo);
         return out;
     }
